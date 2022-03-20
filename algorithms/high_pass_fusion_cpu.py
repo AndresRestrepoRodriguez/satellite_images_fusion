@@ -10,11 +10,9 @@ def fusion_paso_alto(banda,im1, im2):
     return fusionbanda
 
 def fusion_paso_alto_cpu(im_multi, im_pan):
-    print("algooooooo")
     listaunion = []
     n_bandas = int(im_multi.shape[2])
     double_pan = im_pan.astype(np.float32)
-    print("las dimensiones de im_multi son:  ", im_multi.shape)
     imagen1 = ndimage.correlate(double_pan, filtro1, mode='constant')
     imagen2 = ndimage.correlate(double_pan, filtro2, mode='constant')
 

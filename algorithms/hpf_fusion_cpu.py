@@ -62,3 +62,4 @@ def fusionar_imagen(im_pan, ceros, lista_float, n_bandas, imagen1):
     fusioned_image = np.stack((lista_bases), axis=2)
     return fusioned_image
 
+
