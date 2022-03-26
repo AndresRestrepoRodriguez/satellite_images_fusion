@@ -1,7 +1,7 @@
-import gdal
 import osgeo.gdalnumeric as gdn
 import numpy as np
 import skimage.io
+from osgeo import ogr, osr, gdal
 
 
 def read_image(path_image):
