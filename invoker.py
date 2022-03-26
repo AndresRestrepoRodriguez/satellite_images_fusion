@@ -1,5 +1,5 @@
-from algorithms import gram_fusion_cpu, gram_fusion_gpu, high_pass_fusion_cpu, high_pass_fusion_gpu, hpf_fusion_cpu, hpf_fusion_gpu, mean_value_fusion_cpu, mean_value_fusion_gpu
-from utils import utils
+from .algorithms import gram_fusion_cpu, gram_fusion_gpu, high_pass_fusion_cpu, high_pass_fusion_gpu, hpf_fusion_cpu, hpf_fusion_gpu, mean_value_fusion_cpu, mean_value_fusion_gpu
+from .utils import utils
 
 
 METHODS_FUSION = {
