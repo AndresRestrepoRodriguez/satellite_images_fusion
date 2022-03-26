@@ -22,7 +22,7 @@ def save_image_with_info(path_image, image_to_inject, geographical_data):
   pixelHeight=origen[5]
   driver = gdal.GetDriverByName("GTiff")
   proy = geographical_data.GetProjection()
-  outRaster = driver.Create(path_image, cols, rows, bandas, gdal.GDT_Byte)
+  outRaster = driver.Create(path_image, cols, rows, num_bands, gdal.GDT_Byte)
   outRaster.SetGeoTransform((origenX, pixelWidth, origen[2], origenY,origen[4], pixelHeight))
   if num_bands ==1:
       outRaster.GetRasterBand(1).WriteArray(image_to_inject)
