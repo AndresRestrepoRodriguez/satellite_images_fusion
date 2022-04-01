@@ -4,7 +4,7 @@ from scipy import ndimage
 
 # imagen1 = []
 # ceros=[]
-def fusion_hpf_cpu(im_pan, im_multi):
+def fusion_hpf_cpu(im_multi, im_pan):
     lista_float = []
     i = 0
     double_pan = im_pan.astype(np.float32)
