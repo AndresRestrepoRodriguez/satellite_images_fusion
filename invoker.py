@@ -35,7 +35,7 @@ def generate_quality_metrics(fusioned_image_path, original_image_path, metrics=[
     original_image, _ = utils.read_image(original_image_path)
     for metric in metrics:
         if metric in METRICS_METHODS.keys():
-            results[metric] = METRICS_METHODS[metric]
+            results[metric] = METRICS_METHODS[metric](fusioned_image, original_image)
         else:
             print(f"Metric {metric} is not defined")
     return results
