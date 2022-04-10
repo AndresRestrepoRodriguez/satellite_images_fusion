@@ -11,6 +11,12 @@ METHODS_FUSION = {
                     'gram': {'cpu': gram_fusion_cpu.fusion_gram_cpu, 'gpu': gram_fusion_gpu.fusion_gram_gpu}
                   }
 
+METRICS_METHODS = {'mse': mt.mse,
+                   'rmse': mt.rmse,
+                   'bias': mt.bias,
+                   'correlation': mt.correlation_coeff}
+
+
 
 def generate_fusion_images(multispectral_path, pancromatic_path, method_fusion, fusioned_image_path, device_fusion="cpu", geographical_info=True):
     fusion_algorithm = METHODS_FUSION[method_fusion][device_fusion]
@@ -28,15 +34,8 @@ def generate_quality_metrics(fusioned_image_path, original_image_path, metrics=[
     fusioned_image, _ = utils.read_image(fusioned_image_path)
     original_image, _ = utils.read_image(original_image_path)
     for metric in metrics:
-        match metric:
-            case 'mse':
-                results['mse'] = mt.mse(fusioned_image, original_image)
-            case 'rmse':
-                results['rmse'] = mt.rmse(fusioned_image, original_image)
-            case 'bias':
-                results['bias'] = mt.bias(fusioned_image, original_image)
-            case 'correlation':
-                results['correlation'] = mt.correlation_coeff(fusioned_image, original_image)
-            case _:
-                print(f"Metric {metric} is not defined")
+        if metric in METRICS_METHODS.keys():
+            results[metric] = METRICS_METHODS[metric]
+        else:
+            print(f"Metric {metric} is not defined")
     return results
