@@ -10,130 +10,126 @@ from pycuda.elementwise import ElementwiseKernel
 from cupyx.scipy.ndimage import filters
 import cupy as cp
 
-resultados = []
+results_operations = []
 
 
-def fusion_gram_gpu(im_multi, im_pan):
-    pan_float = im_pan.astype(np.float32)
-    fusion = pan_float
-    n_bandas = int(im_multi.shape[2])
-    i = 0
-    lista_bandas = []
+def fusion_gram_gpu(multispectral_image, panchromatic_image):
+    panchromatic_float = panchromatic_image.astype(np.float32)
+    panchromatic_copy = panchromatic_float
+    num_bands = int(multispectral_image.shape[2])
+    band_iterator = 0
+    bands_list = []
 
-    while i < n_bandas:
-        banda = im_multi[:, :, i]
-        banda_float = banda.astype(np.float32)
-        fusion = fusion + banda_float
-        banda_float = banda_float.astype(np.uint8)
-        lista_bandas.append(banda_float)
-        i = i + 1
+    while band_iterator < num_bands:
+        band = multispectral_image[:, :, band_iterator]
+        float_band = band.astype(np.float32)
+        panchromatic_copy = panchromatic_copy + float_band
+        float_band = float_band.astype(np.uint8)
+        bands_list.append(float_band)
+        band_iterator = band_iterator + 1
+    total_bands = num_bands + 1
+    fusion_mean = panchromatic_copy / total_bands
+    bands_list.insert(0, fusion_mean)
+    fusioned_image = np.stack(bands_list, axis=2)
+    mat_escalar = get_scalar(fusioned_image)
+    bands_matrix = create_bands(mat_escalar, panchromatic_float)
+    fusion_bands = merge_bands(bands_matrix)
+    final_image = merge_image(fusion_bands)
+    return final_image
 
-    fusion_prom = fusion / 4
-    lista_bandas.insert(0, fusion_prom)
-    fusioned_image = np.stack((lista_bandas), axis=2)
-    mat_escalar = calcular_escalar(fusioned_image)
-    matriz_bandas = crear_bandas(mat_escalar, pan_float)
-    bandas_fusion = fusion_bandas(matriz_bandas)
-    imagen_final = fusion_imagen(bandas_fusion)
-    return imagen_final
 
-
-def calcular_escalar(fusioned_image):
-    global resultados
+def get_scalar(fusioned_image):
+    global results_operations
     fusioned_float = fusioned_image.astype(np.float32)
-    matriz_temp_gpu = gpuarray.to_gpu(fusioned_float)
-    N = int(fusioned_image.shape[2])
-    matriz_temp = np.empty_like(fusioned_image)
+    matrix_tmp_gpu = gpuarray.to_gpu(fusioned_float)
+    num_bands = int(fusioned_image.shape[2])
+    matrix_tmp = np.empty_like(fusioned_image)
 
-    for n in range(N):
-        matriz_temp[:, :, n] = fusioned_image[:, :, n]
-
-        for m in range(n):
-            fusioned_cp = cp.array(fusioned_image[:, :, n])
-            matriz_temp_cp = cp.array(matriz_temp[:, :, m])
-            num_cp = cp.vdot(fusioned_cp, matriz_temp_cp)
-            den_cp = cp.vdot(matriz_temp_cp, matriz_temp_cp)
+    for band_iterator in range(num_bands):
+        matrix_tmp[:, :, band_iterator] = fusioned_image[:, :, band_iterator]
+        for m in range(band_iterator):
+            fusion_cupy = cp.array(fusioned_image[:, :, band_iterator])
+            matrix_tmp_cupy = cp.array(matrix_tmp[:, :, m])
+            num_cp = cp.vdot(fusion_cupy, matrix_tmp_cupy)
+            den_cp = cp.vdot(matrix_tmp_cupy, matrix_tmp_cupy)
             num = num_cp.get()
             den = den_cp.get()
-            resultado = num / den
-            resultados.append(resultado)
-            matriz_temp_gpu[:, :, n] = gpuarray.to_gpu(
-                matriz_temp[:, :, n].astype(np.float32)) - resultado * gpuarray.to_gpu(
-                matriz_temp[:, :, m].astype(np.float32))
-            matriz_temp = matriz_temp_gpu.get()
+            result = num / den
+            results_operations.append(result)
+            matrix_tmp_gpu[:, :, band_iterator] = gpuarray.to_gpu(
+                matrix_tmp[:, :, band_iterator].astype(np.float32)) - result * gpuarray.to_gpu(
+                matrix_tmp[:, :, m].astype(np.float32))
+            matrix_tmp = matrix_tmp_gpu.get()
 
-    return matriz_temp
-
-
-def crear_bandas(matriz_temp, pan_float):
-    z = int(matriz_temp.shape[2])
-    lista_imagen = []
-    j = 1
-    while j < z:
-        imagen = matriz_temp[:, :, j]
-        imagen_float = imagen.astype(np.float32)
-        lista_imagen.append(imagen_float)
-        j = j + 1
-
-    lista_imagen.insert(0, pan_float)
-    matriz_temp = np.stack((lista_imagen), axis=2)
-    return matriz_temp
+    return matrix_tmp
 
 
-def fusion_bandas(matriz_temp):
-    global resultados
-    bandas_temp_gpu = gpuarray.to_gpu(matriz_temp)
-    bandas_temp = np.empty_like(matriz_temp)
-    limit = int(matriz_temp.shape[2])
-    k = 0
-    for n in range(limit):
-        bandas_temp[:, :, n] = matriz_temp[:, :, n]
+def create_bands(tmp_matrix, pan_float):
+    num_bands = int(tmp_matrix.shape[2])
+    image_list = []
+    band_iterator = 1
+    while band_iterator < num_bands:
+        image = tmp_matrix[:, :, band_iterator]
+        float_image = image.astype(np.float32)
+        image_list.append(float_image)
+        band_iterator = band_iterator + 1
+
+    image_list.insert(0, pan_float)
+    matrix_temp = np.stack(image_list, axis=2)
+    return matrix_temp
+
+
+def merge_bands(matrix_tmp):
+    global results_operations
+    temporal_bands_gpu = gpuarray.to_gpu(matrix_tmp)
+    tmp_bands = np.empty_like(matrix_tmp)
+    num_bands = int(matrix_tmp.shape[2])
+    band_iterator = 0
+    for n in range(num_bands):
+        tmp_bands[:, :, n] = matrix_tmp[:, :, n]
         for m in range(n):
-            bandas_temp_gpu[:, :, n] = gpuarray.to_gpu(bandas_temp[:, :, n].astype(np.float32)) + resultados[
-                k] * gpuarray.to_gpu(matriz_temp[:, :, m].astype(np.float32))
-            bandas_temp = bandas_temp_gpu.get()
-            k = k + 1
-    return bandas_temp
+            temporal_bands_gpu[:, :, n] = gpuarray.to_gpu(tmp_bands[:, :, n].astype(np.float32)) + resultados[
+                band_iterator] * gpuarray.to_gpu(matrix_tmp[:, :, m].astype(np.float32))
+            tmp_bands = temporal_bands_gpu.get()
+            band_iterator = band_iterator + 1
+    return tmp_bands
 
 
-def fusion_imagen(bandas_temp):
-    l = 1
-    lista_finales = []
-    limit2 = int(bandas_temp.shape[2])
-    for l in range(1, limit2):
-        imagen_final = bandas_temp[:, :, l]
-        imagen_float = imagen_final.astype(np.float32)
-        ajuste_mayores = ajustar_valores_mayores(imagen_float)
-        imagen_float = ajuste_mayores.astype(np.float32)
-        ajuste_negativos = ajustar_valores_negativos(imagen_float)
-        imagen_float = ajuste_negativos.astype(np.float32)
+def merge_image(bandas_temp):
+    final_list = []
+    num_bands = int(bandas_temp.shape[2])
+    for band_iterator in range(1, num_bands):
+        final_image = bandas_temp[:, :, band_iterator]
+        float_image = final_image.astype(np.float32)
+        greater_fitted_values = fit_greater_values(float_image)
+        float_image = greater_fitted_values.astype(np.float32)
+        negative_fitted_values = fit_negative_values(float_image)
+        float_image = negative_fitted_values.astype(np.float32)
+        final_image = float_image.astype(np.uint8)
+        final_list.append(final_image)
 
-        imagen_final = imagen_float.astype(np.uint8)
-        lista_finales.append(imagen_final)
-
-    f_gram = np.stack((lista_finales), axis=2)
-    return f_gram
+    gram_fusion = np.stack(final_list, axis=2)
+    return gram_fusion
 
 
-def ajustar_valores_mayores(matrix):
+def fit_greater_values(matrix):
     matrix = matrix.astype(np.float32)
     matrix_gpu = gpuarray.to_gpu(matrix)
     matrix_gpu_new = gpuarray.empty_like(matrix_gpu)
-    adjustment_values = ElementwiseKernel(
+    fit_positive = ElementwiseKernel(
         "float *x, float *z",
         "if(x[i] > 255){z[i] = 255.0;}else{z[i] = x[i];}",
         "adjust_value")
-    adjustment_values(matrix_gpu, matrix_gpu_new)
-
+    fit_positive(matrix_gpu, matrix_gpu_new)
     return matrix_gpu_new.get()
 
 
-def ajustar_valores_negativos(matrix):
+def fit_negative_values(matrix):
     matrix_gpu = gpuarray.to_gpu(matrix)
     new_matrix_gpu = gpuarray.empty_like(matrix_gpu)
-    ajustar_menores = ElementwiseKernel(
+    fit_negative = ElementwiseKernel(
         "float *x, float *z",
         "if(x[i] < 0){z[i] = 0.0;}else{z[i] = x[i];}",
         "adjust_value")
-    ajustar_menores(matrix_gpu, new_matrix_gpu)
+    fit_negative(matrix_gpu, new_matrix_gpu)
     return new_matrix_gpu.get()

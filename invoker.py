@@ -1,12 +1,13 @@
 from .algorithms import gram_fusion_cpu, gram_fusion_gpu, high_pass_fusion_cpu, high_pass_fusion_gpu, hpf_fusion_cpu,\
     hpf_fusion_gpu, mean_value_fusion_cpu, mean_value_fusion_gpu
 from .utils import utils
+from .metrics import metrics as mt
 
 
 METHODS_FUSION = {
                     'hpf': {'cpu': hpf_fusion_cpu.fusion_hpf_cpu, 'gpu': hpf_fusion_gpu.fusion_hpf_gpu},
-                    'mean_value': {'cpu': mean_value_fusion_cpu.fusion_valor_medio_cpu, 'gpu': mean_value_fusion_gpu.fusion_valor_medio_gpu},
-                    'high_pass': {'cpu': high_pass_fusion_cpu.fusion_paso_alto_cpu, 'gpu':high_pass_fusion_gpu.fusion_paso_alto_gpu},
+                    'mean_value': {'cpu': mean_value_fusion_cpu.fusion_mean_value_cpu, 'gpu': mean_value_fusion_gpu.fusion_mean_value_gpu},
+                    'high_pass': {'cpu': high_pass_fusion_cpu.fusion_high_pass_cpu, 'gpu': high_pass_fusion_gpu.fusion_high_pass_gpu},
                     'gram': {'cpu': gram_fusion_cpu.fusion_gram_cpu, 'gpu': gram_fusion_gpu.fusion_gram_gpu}
                   }
 
@@ -20,3 +21,22 @@ def generate_fusion_images(multispectral_path, pancromatic_path, method_fusion, 
         utils.save_image_with_info(fusioned_image_path, image_fusioned, multi_info)
     else:
         utils.save_image_without_info(fusioned_image_path, image_fusioned)
+
+
+def generate_quality_metrics(fusioned_image_path, original_image_path, metrics=['mse', 'rmse', 'bias', 'correlation']):
+    results = {}
+    fusioned_image, _ = utils.read_image(fusioned_image_path)
+    original_image, _ = utils.read_image(original_image_path)
+    for metric in metrics:
+        match metric:
+            case 'mse':
+                results['mse'] = mt.mse(fusioned_image, original_image)
+            case 'rmse':
+                results['rmse'] = mt.rmse(fusioned_image, original_image)
+            case 'bias':
+                results['bias'] = mt.bias(fusioned_image, original_image)
+            case 'correlation':
+                results['correlation'] = mt.correlation_coeff(fusioned_image, original_image)
+            case _:
+                print(f"Metric {metric} is not defined")
+    return results

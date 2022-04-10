@@ -6,25 +6,24 @@ import pycuda.driver as drv
 import pycuda.gpuarray as gpuarray
 
 
-def operacion_bandas_gpu(color_ban, ban_pan):
-    color_ban_gpu = gpuarray.to_gpu(color_ban)
-    pan_ban_gpu = gpuarray.to_gpu(ban_pan)
-    resultado_op_bandas = (color_ban_gpu + pan_ban_gpu) * 0.5
+def bands_operation_gpu(color_band, panchromatic_data):
+    color_band_gpu = gpuarray.to_gpu(color_band)
+    panchromatic_data_gpu = gpuarray.to_gpu(panchromatic_data)
+    result_operation = (color_band_gpu + panchromatic_data_gpu) * 0.5
+    return result_operation.get()
 
-    return resultado_op_bandas.get()
 
-
-def fusion_valor_medio_gpu(im_multi, im_pan):
-    listaunion = []
-    n_bandas = int(im_multi.shape[2])
-    pan_float = im_pan.astype(np.float32)
-    i = 0
-    while i < n_bandas:
-        matrix = im_multi[:, :, i]
-        matrixfloat = matrix.astype(np.float32)
-        fusionbandas = operacion_bandas_gpu(matrixfloat, pan_float)
-        union = fusionbandas.astype(np.uint8)
-        listaunion.append(union)
-        i = i + 1
-    fusioned_image = np.stack((listaunion), axis=2)
+def fusion_mean_value_gpu(multispectral_image, panchromatic_image):
+    union_list = []
+    num_bands = int(multispectral_image.shape[2])
+    panchromatic_float = panchromatic_image.astype(np.float32)
+    band_iterator = 0
+    while band_iterator < num_bands:
+        matrix = multispectral_image[:, :, band_iterator]
+        float_matrix = matrix.astype(np.float32)
+        fusion_bands = bands_operation_gpu(float_matrix, panchromatic_float)
+        union = fusion_bands.astype(np.uint8)
+        union_list.append(union)
+        band_iterator = band_iterator + 1
+    fusioned_image = np.stack(union_list, axis=2)
     return fusioned_image

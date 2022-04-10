@@ -2,36 +2,33 @@ import numpy as np
 import skimage
 from scipy import ndimage
 
-filtro1 = np.array([[-1, -1, -1],[-1, 9, -1],[-1, -1, -1]]) * (1/9)
-filtro2 = np.array([[1, 1, 1],[1, 1, 1],[1, 1, 1]]) * (1/9)
-
-def fusion_paso_alto(banda,im1, im2):
-    fusionbanda = banda + np.multiply(np.divide(banda, im2), im1)
-    return fusionbanda
-
-def fusion_paso_alto_cpu(im_multi, im_pan):
-    listaunion = []
-    n_bandas = int(im_multi.shape[2])
-    double_pan = im_pan.astype(np.float32)
-    imagen1 = ndimage.correlate(double_pan, filtro1, mode='constant')
-    imagen2 = ndimage.correlate(double_pan, filtro2, mode='constant')
-
-    imagen1[imagen1<0] = 0
-    imagen2[imagen2<0] = 0
+initial_filter = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]]) * (1 / 9)
+second_filter = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) * (1 / 9)
 
 
-    double_imagen1 = imagen1.astype(np.float32)
-    double_imagen2 = imagen2.astype(np.float32)
-    i = 0
+def fusion_high_pass(band, image_a, image_b):
+    band_fusion = band + np.multiply(np.divide(band, image_b), image_a)
+    return band_fusion
 
-    while i < n_bandas:
-        banda = im_multi[:,:,i]
-        bandafloat = banda.astype(np.float32)
-        fusionbandas = fusion_paso_alto(bandafloat, double_imagen1, double_imagen2)
-        fusionbandas[fusionbandas>255] = 255
-        to_image = fusionbandas.astype(np.uint8)
-        listaunion.append(to_image)
-        i = i + 1
 
-    fusioned_image = np.stack((listaunion),axis = 2)
+def fusion_high_pass_cpu(multispectral_image, panchromatic_image):
+    union_list = []
+    num_bands = int(multispectral_image.shape[2])
+    panchormatic_float = panchromatic_image.astype(np.float32)
+    image_initial_filter = ndimage.correlate(panchormatic_float, initial_filter, mode='constant')
+    image_second_filter = ndimage.correlate(panchormatic_float, second_filter, mode='constant')
+    image_initial_filter[image_initial_filter < 0] = 0
+    image_second_filter[image_second_filter < 0] = 0
+    image_initial_filter_float = image_initial_filter.astype(np.float32)
+    image_second_filter_float = image_second_filter.astype(np.float32)
+    band_iterator = 0
+    while band_iterator < num_bands:
+        band = multispectral_image[:, :, band_iterator]
+        band_float = band.astype(np.float32)
+        fusion_bands = fusion_high_pass(band_float, image_initial_filter_float, image_second_filter_float)
+        fusion_bands[fusion_bands > 255] = 255
+        result_image = fusion_bands.astype(np.uint8)
+        union_list.append(result_image)
+        band_iterator = band_iterator + 1
+    fusioned_image = np.stack(union_list,axis = 2)
     return fusioned_image
