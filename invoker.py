@@ -17,7 +17,6 @@ METRICS_METHODS = {'mse': mt.mse,
                    'correlation': mt.correlation_coeff}
 
 
-
 def generate_fusion_images(multispectral_path, pancromatic_path, method_fusion, fusioned_image_path, device_fusion="cpu", geographical_info=True):
     fusion_algorithm = METHODS_FUSION[method_fusion][device_fusion]
     multi_image, multi_info = utils.read_image(multispectral_path)

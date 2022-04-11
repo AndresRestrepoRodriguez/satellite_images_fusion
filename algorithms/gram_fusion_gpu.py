@@ -88,7 +88,7 @@ def merge_bands(matrix_tmp):
     for n in range(num_bands):
         tmp_bands[:, :, n] = matrix_tmp[:, :, n]
         for m in range(n):
-            temporal_bands_gpu[:, :, n] = gpuarray.to_gpu(tmp_bands[:, :, n].astype(np.float32)) + resultados[
+            temporal_bands_gpu[:, :, n] = gpuarray.to_gpu(tmp_bands[:, :, n].astype(np.float32)) + results_operations[
                 band_iterator] * gpuarray.to_gpu(matrix_tmp[:, :, m].astype(np.float32))
             tmp_bands = temporal_bands_gpu.get()
             band_iterator = band_iterator + 1
