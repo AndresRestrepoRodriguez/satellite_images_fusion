@@ -1,0 +1,4 @@
+import gram_fusion_cpu, gram_fusion_gpu
+import high_frecuency_modulation_cpu, high_frecuency_modulation_gpu
+import hpf_fusion_cpu, hpf_fusion_gpu
+import mean_value_fusion_cpu, mean_value_fusion_gpu
