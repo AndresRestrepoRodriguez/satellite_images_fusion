@@ -1,4 +1,4 @@
-from .algorithms import gram_fusion_cpu, gram_fusion_gpu, high_pass_fusion_cpu, high_pass_fusion_gpu, hpf_fusion_cpu,\
+from .algorithms import gram_fusion_cpu, gram_fusion_gpu, high_frecuency_modulation_cpu, high_frecuency_modulation_gpu, hpf_fusion_cpu,\
     hpf_fusion_gpu, mean_value_fusion_cpu, mean_value_fusion_gpu
 from .utils import utils
 from .metrics import metrics as mt
@@ -7,7 +7,7 @@ from .metrics import metrics as mt
 METHODS_FUSION = {
                     'hpf': {'cpu': hpf_fusion_cpu.fusion_hpf_cpu, 'gpu': hpf_fusion_gpu.fusion_hpf_gpu},
                     'mean_value': {'cpu': mean_value_fusion_cpu.fusion_mean_value_cpu, 'gpu': mean_value_fusion_gpu.fusion_mean_value_gpu},
-                    'high_pass': {'cpu': high_pass_fusion_cpu.fusion_high_pass_cpu, 'gpu': high_pass_fusion_gpu.fusion_high_pass_gpu},
+                    'high_pass': {'cpu': high_frecuency_modulation_cpu.fusion_high_pass_cpu, 'gpu': high_frecuency_modulation_gpu.fusion_high_pass_gpu},
                     'gram': {'cpu': gram_fusion_cpu.fusion_gram_cpu, 'gpu': gram_fusion_gpu.fusion_gram_gpu}
                   }
 
