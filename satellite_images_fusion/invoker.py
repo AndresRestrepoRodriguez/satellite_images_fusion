@@ -5,10 +5,10 @@ from satellite_images_fusion.metrics import metrics as mt
 
 
 METHODS_FUSION = {
-                    'hpf': {'cpu': hpf_fusion_cpu.fusion_hpf_cpu, 'gpu': hpf_fusion_gpu.fusion_hpf_gpu},
+                    'high_pass_filter': {'cpu': hpf_fusion_cpu.fusion_hpf_cpu, 'gpu': hpf_fusion_gpu.fusion_hpf_gpu},
                     'mean_value': {'cpu': mean_value_fusion_cpu.fusion_mean_value_cpu, 'gpu': mean_value_fusion_gpu.fusion_mean_value_gpu},
-                    'high_pass': {'cpu': high_frecuency_modulation_cpu.fusion_high_pass_cpu, 'gpu': high_frecuency_modulation_gpu.fusion_high_pass_gpu},
-                    'gram': {'cpu': gram_fusion_cpu.fusion_gram_cpu, 'gpu': gram_fusion_gpu.fusion_gram_gpu}
+                    'high_frecuency_modulation': {'cpu': high_frecuency_modulation_cpu.fusion_high_pass_cpu, 'gpu': high_frecuency_modulation_gpu.fusion_high_pass_gpu},
+                    'gram_schmidt': {'cpu': gram_fusion_cpu.fusion_gram_cpu, 'gpu': gram_fusion_gpu.fusion_gram_gpu}
                   }
 
 METRICS_METHODS = {'mse': mt.mse,
