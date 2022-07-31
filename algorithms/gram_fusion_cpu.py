@@ -1,87 +1,87 @@
 import numpy as np
 
-resultados = []
+results_operations = []
 
 
-def fusion_gram_cpu(im_multi, im_pan):
-    pan_float = im_pan.astype(np.float32)
-    fusion = pan_float
-    n_bandas = int(im_multi.shape[2])
-    i = 0
-    lista_bandas = []
+def fusion_gram_cpu(multispectral_image, panchromatic_image):
+    panchromatic_float = panchromatic_image.astype(np.float32)
+    panchromatic_copy = panchromatic_float
+    num_bands = int(multispectral_image.shape[2])
+    band = 0
+    bands_list = []
 
-    while i < n_bandas:
-        banda = im_multi[:, :, i]
-        banda_float = banda.astype(np.float32)
-        fusion = fusion + banda_float
-        banda_float = banda_float.astype(np.uint8)
-        lista_bandas.append(banda_float)
-        i = i + 1
+    while band < num_bands:
+        local_band = multispectral_image[:, :, band]
+        float_band = local_band.astype(np.float32)
+        panchromatic_copy = panchromatic_copy + float_band
+        float_band = float_band.astype(np.uint8)
+        bands_list.append(float_band)
+        band = band + 1
 
-    fusion_prom = fusion / 4
-    lista_bandas.insert(0, fusion_prom)
-    fusioned_image = np.stack((lista_bandas), axis=2)
-    mat_escalar = calcular_escalar(fusioned_image)
-    matriz_bandas = crear_bandas(mat_escalar, pan_float)
-    bandas_fusion = fusion_bandas(matriz_bandas)
-    imagen_final = fusion_imagen(bandas_fusion)
-    return imagen_final
+    total_bands = num_bands + 1
+    fusion_mean = panchromatic_copy / total_bands
+    bands_list.insert(0, fusion_mean)
+    fusioned_image = np.stack(bands_list, axis=2)
+    mat_scalar = get_scalar(fusioned_image)
+    bands_matrix = create_bands(mat_scalar, panchromatic_float)
+    fusion_bands = merge_bands(bands_matrix)
+    final_image = merge_image(fusion_bands)
+    return final_image
 
 
-def calcular_escalar(fusioned_image):
-    global resultados
-    N = int(fusioned_image.shape[2])
+def get_scalar(fusioned_image):
+    global results_operations
+    num_bands = int(fusioned_image.shape[2])
     matriz_temp = np.empty_like(fusioned_image)
 
-    for n in range(N):
-        matriz_temp[:, :, n] = fusioned_image[:, :, n]
-        for m in range(n):
-            num = np.vdot(fusioned_image[:, :, n], matriz_temp[:, :, m])
+    for band in range(num_bands):
+        matriz_temp[:, :, band] = fusioned_image[:, :, band]
+        for m in range(band):
+            num = np.vdot(fusioned_image[:, :, band], matriz_temp[:, :, m])
             den = np.vdot(matriz_temp[:, :, m], matriz_temp[:, :, m])
-            resultado = num / den
-            resultados.append(resultado)
-            matriz_temp[:, :, n] = matriz_temp[:, :, n] - resultado * matriz_temp[:, :, m]
+            result_tmp = num / den
+            results_operations.append(result_tmp)
+            matriz_temp[:, :, band] = matriz_temp[:, :, band] - result_tmp * matriz_temp[:, :, m]
     return matriz_temp
 
 
-def crear_bandas(matriz_temp, pan_float):
-    z = int(matriz_temp.shape[2])
-    lista_imagen = []
-    j = 1
-    while j < z:
-        imagen = matriz_temp[:, :, j]
-        imagen_float = imagen.astype(np.float32)
-        lista_imagen.append(imagen_float)
-        j = j + 1
+def create_bands(tmp_matrix, pan_float):
+    num_bands = int(tmp_matrix.shape[2])
+    image_list = []
+    band_iterator = 1
+    while band_iterator < num_bands:
+        image = tmp_matrix[:, :, band_iterator]
+        float_image = image.astype(np.float32)
+        image_list.append(float_image)
+        band_iterator = band_iterator + 1
 
-    lista_imagen.insert(0, pan_float)
-    matriz_temp = np.stack((lista_imagen), axis=2)
-    return matriz_temp
-
-
-def fusion_bandas(matriz_temp):
-    global resultados
-    bandas_temp = np.empty_like(matriz_temp)
-    limit = int(matriz_temp.shape[2])
-    k = 0
-    for n in range(limit):
-        bandas_temp[:, :, n] = matriz_temp[:, :, n]
-        for m in range(n):
-            bandas_temp[:, :, n] = bandas_temp[:, :, n] + resultados[k] * matriz_temp[:, :, m]
-            k = k + 1
-    return bandas_temp
+    image_list.insert(0, pan_float)
+    tmp_matrix = np.stack(image_list, axis=2)
+    return tmp_matrix
 
 
-def fusion_imagen(bandas_temp):
-    l = 1
-    lista_finales = []
-    limit2 = int(bandas_temp.shape[2])
-    for l in range(1, limit2):
-        imagen_final = bandas_temp[:, :, l]
-        imagen_final[imagen_final > 255] = 255
-        imagen_final[imagen_final < 0] = 0
-        imagen_final = imagen_final.astype(np.uint8)
-        lista_finales.append(imagen_final)
+def merge_bands(matrix_tmp):
+    global results_operations
+    temporal_bands = np.empty_like(matrix_tmp)
+    num_bands = int(matrix_tmp.shape[2])
+    band_iterator = 0
+    for band_value in range(num_bands):
+        temporal_bands[:, :, band_value] = matrix_tmp[:, :, band_value]
+        for m in range(band_value):
+            temporal_bands[:, :, band_value] = temporal_bands[:, :, band_value] + results_operations[band_iterator] * matrix_tmp[:, :, m]
+            band_iterator = band_iterator + 1
+    return temporal_bands
 
-    f_gram = np.stack((lista_finales), axis=2)
-    return f_gram
+
+def merge_image(bandas_temp):
+    final_list = []
+    num_bands = int(bandas_temp.shape[2])
+    for band_iterator in range(1, num_bands):
+        final_image = bandas_temp[:, :, band_iterator]
+        final_image[final_image > 255] = 255
+        final_image[final_image < 0] = 0
+        final_image = final_image.astype(np.uint8)
+        final_list.append(final_image)
+
+    gram_fusion = np.stack(final_list, axis=2)
+    return gram_fusion
