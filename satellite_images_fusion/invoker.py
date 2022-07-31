@@ -1,7 +1,7 @@
-from algorithms import gram_fusion_cpu, gram_fusion_gpu, high_frecuency_modulation_cpu, high_frecuency_modulation_gpu, hpf_fusion_cpu,\
+from satellite_images_fusion.algorithms import gram_fusion_cpu, gram_fusion_gpu, high_frecuency_modulation_cpu, high_frecuency_modulation_gpu, hpf_fusion_cpu,\
     hpf_fusion_gpu, mean_value_fusion_cpu, mean_value_fusion_gpu
-from utils import utils
-from metrics import metrics as mt
+from satellite_images_fusion.utils import utils
+from satellite_images_fusion.metrics import metrics as mt
 
 
 METHODS_FUSION = {
