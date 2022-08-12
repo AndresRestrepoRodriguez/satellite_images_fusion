@@ -1,0 +1,15 @@
+In the following link you can find a set of images to test the fusion package exposed in this repository.
+
+Link: https://drive.google.com/file/d/1IyTOs9R6NQrCvhh7vYco8WqIbl1VBbqY/view?usp=sharing
+
+In this link you will find a file named test_image.rar, please download it.
+
+When you unzip it, you will find the following images:
+- 1024pan.tif
+- 1024rgb.tif
+- 2048pan8r.tif
+- 2048rgb81r.tif
+- 4096panlandsat.tif
+- 4096rgblandsat.tif
+- panlandsat8192.tif
+- rgblandasa8192.tif
