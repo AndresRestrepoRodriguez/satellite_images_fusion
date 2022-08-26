@@ -35,5 +35,8 @@ El manual técnico realizado para esta aplicación, tiene como finalidad present
 ## Especificación de Requisitos de Software
 Este documento es una Especificación de Requisitos Software (ERS) para la librería llamada “Sallfus”. Esta especificación se ha estructurado basándose en las directrices dadas por el estándar IEEE Práctica Recomendada para Especificaciones de Requisitos Software ANSI/IEEE 830, 1998. Este documento se encuentra disponible en la siguiente dirección : [Documento](https://github.com/AndresRestrepoRodriguez/satellite_images_fusion/blob/main/handbook/IEEE-830-satellite_images_fusion.pdf)
 
+## Notebook en Colab
+Con el propósito de ilustrar la forma de instalar y usar el paquete, se ha creado un Notebook en Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1tuWc60ub4scOSNl3wTQ8EoI5b9E-tyNS) 
+
 ## Video Tutorial
 Con el fin de presentar detalladamente el funcionamiento de la librería, se realizó un video tutorial donde se presenta la interacción entre el usuario y cada una de las funciones que pertencen a esta. El video tutorial se encuentra disponible en la siguiente dirección: [Video]()
